@@ -1,0 +1,15 @@
+// Prisma migration for follow feature
+// Add this model to your schema.prisma and run `npx prisma migrate dev`
+
+model Follow {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  followerId String   @db.Uuid
+  followingId String  @db.Uuid
+  createdAt  DateTime @default(now())
+
+  follower   User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following  User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}

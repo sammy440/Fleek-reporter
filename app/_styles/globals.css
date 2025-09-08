@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode variant for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Base theme surfaces */
+html {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  /* Light mode base */
+  @apply bg-white text-gray-900;
+}
+
+.dark body {
+  /* Dark mode base */
+  @apply bg-gray-950 text-gray-100;
+}
+
+/* Pragmatic dark overrides for common light utilities without touching components */
+.dark .bg-white {
+  background-color: rgb(17 24 39) !important;
+} /* gray-900 */
+.dark .bg-gray-50 {
+  background-color: rgb(17 24 39) !important;
+}
+.dark .text-black {
+  color: rgb(229 231 235) !important;
+} /* gray-200 */
+.dark .border-gray-200 {
+  border-color: rgb(31 41 55) !important;
+} /* gray-800 */
+.dark .shadow-lg,
+.dark .shadow-md,
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.2), 0 1px 3px 1px rgb(0 0 0 / 0.15) !important;
+}
+
+/* Inputs */
+.dark input::placeholder {
+  color: rgb(107 114 128);
+} /* gray-500 */
+.dark input {
+  color: rgb(243 244 246);
+} /* gray-100 */
+
+/* Brighten commonly used gray text utilities in dark mode for better contrast */
+.dark .text-gray-500 {
+  color: rgb(209 213 219) !important;
+} /* gray-300 */
+.dark .text-gray-600 {
+  color: rgb(229 231 235) !important;
+} /* gray-200 */
+.dark .text-gray-700 {
+  color: rgb(243 244 246) !important;
+} /* gray-100 */
+.dark .placeholder-gray-400 {
+  color: rgb(156 163 175) !important;
+} /* gray-400 */
+
+/* Add this to your globals.css or create a separate sidebar.css file */
+
+/* Force black text for active sidebar buttons in both light and dark mode */
+.sidebar-active-button {
+  color: #000000 !important;
+}
+
+.sidebar-active-button * {
+  color: #000000 !important;
+}
+
+.sidebar-active-icon {
+  color: #000000 !important;
+}
+
+/* Ensure the active state text stays black even with existing overrides */
+.dark .sidebar-active-button {
+  color: #000000 !important;
+}
+
+.dark .sidebar-active-button * {
+  color: #000000 !important;
+}
+
+.dark .sidebar-active-icon {
+  color: #000000 !important;
+}
+/* Add this to your globals.css or create a separate sidebar.css file */
+
+/* Force black text for active sidebar buttons in both light and dark mode */
+.sidebar-active-button {
+  color: #000000 !important;
+}
+
+.sidebar-active-button * {
+  color: #000000 !important;
+}
+
+.sidebar-active-icon {
+  color: #000000 !important;
+}
+
+/* Ensure the active state text stays black even with existing overrides */
+.dark .sidebar-active-button {
+  color: #000000 !important;
+}
+
+.dark .sidebar-active-button * {
+  color: #000000 !important;
+}
+
+.dark .sidebar-active-icon {
+  color: #000000 !important;
+}
+
+/* CategoryFilter styles - force black text on gray backgrounds */
+.category-badge {
+  color: #000000 !important;
+}
+
+.category-button-active {
+  color: #000000 !important;
+}
+
+.category-button-active * {
+  color: #000000 !important;
+}
+
+.category-button-inactive {
+  color: #374151 !important; /* gray-700 */
+}
+
+.category-count-active {
+  color: #1f2937 !important; /* gray-800 */
+}
+
+.category-count-inactive {
+  color: #374151 !important; /* gray-700 */
+}
+
+/* Dark mode overrides for CategoryFilter */
+.dark .category-badge {
+  color: #000000 !important;
+}
+
+.dark .category-button-active {
+  color: #000000 !important;
+}
+
+.dark .category-button-active * {
+  color: #000000 !important;
+}
+
+.dark .category-button-inactive {
+  color: #000000 !important;
+}
+
+.dark .category-count-active {
+  color: #1f2937 !important; /* gray-800 */
+}
+
+.dark .category-count-inactive {
+  color: #1f2937 !important; /* gray-800 */
+}
