@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import AuthModal from "./AuthModal"; // Adjust the import path as needed
-import { createUser } from "../_lib/auth";
+// REMOVED: import { createUser } from "../_lib/auth"; // This import was causing the error
 import { useSession } from "next-auth/react";
 import SearchBar from "./SearchBar";
 import { useTheme } from "../provider";
@@ -307,6 +307,4 @@ export default function Navigation() {
     </>
   );
 }
-export async function signUpAction() {
-  await createUser("google", "facebook", { redirectTo: "/account" });
-}
+

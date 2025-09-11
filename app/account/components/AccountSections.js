@@ -127,3 +127,91 @@ export const AccountContent = ({ session, router }) => (
     </motion.div>
   </motion.div>
 );
+
+
+export const FeedsContent = () => (
+  <motion.div
+    initial={{ opacity: 0, x: 50 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: -50 }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
+    className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 lg:p-8"
+  >
+    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 sm:p-6">
+      <h2 className="inline-flex items-center gap-2 text-xs sm:text-sm bg-green-200 text-green-700 dark:bg-green-200 dark:text-green-800 p-2 w-fit rounded-lg font-semibold mb-4 sm:mb-6">
+        <Rss className="w-4 h-4" />
+        <span>News Feeds</span>
+      </h2>
+      <p className="text-gray-700 dark:text-gray-200 leading-relaxed text-sm sm:text-base">
+        This section will display news feeds and reports from the community. 
+        Features are currently under development.
+      </p>
+    </div>
+  </motion.div>
+);
+
+// Reports Content Component  
+export const ReportsContent = () => (
+  <motion.div
+    initial={{ opacity: 0, x: 50 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: -50 }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
+    className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 lg:p-8"
+  >
+    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 sm:p-6">
+      <h2 className="inline-flex items-center gap-2 text-xs sm:text-sm bg-blue-200 text-blue-700 dark:bg-blue-200 dark:text-blue-800 p-2 w-fit rounded-lg font-semibold mb-4 sm:mb-6">
+        <FilePlus2 className="w-4 h-4" />
+        <span>Create New Report</span>
+      </h2>
+      <p className="text-gray-700 dark:text-gray-200 leading-relaxed text-sm sm:text-base">
+        Here you can create and submit new reports. The report creation interface 
+        is currently under development.
+      </p>
+    </div>
+  </motion.div>
+);
+
+// Profile Content Component
+export const ProfileContent = ({ session }) => (
+  <motion.div
+    initial={{ opacity: 0, x: 50 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: -50 }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
+    className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 lg:p-8"
+  >
+    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 sm:p-6">
+      <h2 className="inline-flex items-center gap-2 text-xs sm:text-sm bg-purple-200 text-purple-700 dark:bg-purple-200 dark:text-purple-800 p-2 w-fit rounded-lg font-semibold mb-4 sm:mb-6">
+        <UserCog className="w-4 h-4" />
+        <span>Profile Settings</span>
+      </h2>
+      
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          {session?.user?.image && (
+            <motion.img
+              whileHover={{ scale: 1.1 }}
+              src={session.user.image}
+              alt="Profile"
+              className="w-16 h-16 rounded-full border-3 border-white shadow-md mx-auto sm:mx-0"
+            />
+          )}
+          <div className="text-center sm:text-left">
+            <p className="font-semibold text-lg text-gray-900 dark:text-white">
+              {session?.user?.name || "User Name"}
+            </p>
+            <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base break-all sm:break-normal">
+              {session?.user?.email || "user@example.com"}
+            </p>
+          </div>
+        </div>
+        
+        <p className="text-gray-700 dark:text-gray-200 leading-relaxed text-sm sm:text-base">
+          Profile management and settings features are coming soon. You&apos;ll be able to 
+          update your information, preferences, and account settings here.
+        </p>
+      </div>
+    </div>
+  </motion.div>
+);

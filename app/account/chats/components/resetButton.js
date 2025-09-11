@@ -36,7 +36,7 @@ import { RefreshCw, AlertTriangle } from "lucide-react";
       </button>
     </div>
     <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-      If messages won't decrypt, try resetting the encryption keys for this conversation.
+      If messages won&apos;t decrypt, try resetting the encryption keys for this conversation.
     </p>
   </div>
 )}
