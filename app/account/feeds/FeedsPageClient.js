@@ -2,14 +2,14 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../../_components/Sidebar";
 import ReportItem from "./components/ReportItem";
 import CategoryFilter from "./components/CategoryFilter";
 import { useFeedsData } from "./hooks/FeedsDataHandler";
 
-export default function FeedsPageClient() {
+function FeedsContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,9 +37,9 @@ export default function FeedsPageClient() {
     handleCommentSubmit,
   } = useFeedsData(session, selectedCategory);
 
-  // Read search query from URL
-  const q = (searchParams?.get("q") || "").trim();
-  const normalizedQuery = q.toLowerCase();
+  // Read search query from URL with safe fallback
+  const q = searchParams?.get("q") || "";
+  const normalizedQuery = q.trim().toLowerCase();
 
   const filteredReports = normalizedQuery
     ? reports.filter((r) => {
@@ -291,5 +291,20 @@ export default function FeedsPageClient() {
         </motion.button>
       </div>
     </div>
+  );
+}
+
+export default function FeedsPageClient() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4 animate-spin" />
+          <p className="text-gray-600">Loading your feed...</p>
+        </div>
+      </div>
+    }>
+      <FeedsContent />
+    </Suspense>
   );
 }
