@@ -29,10 +29,23 @@ export const useChatData = (session) => {
   const [initializingKeys, setInitializingKeys] = useState(false);
 
   const { supabase: supabaseAuthClient } = useSupabaseClientWithAuth();
-  const client = session?.user?.accessToken
-    ? supabaseAuthClient
+  
+  // Use authenticated client if we have a valid session and access token
+  // Otherwise fall back to browser client
+  const client = (session?.user?.accessToken && supabaseAuthClient) 
+    ? supabaseAuthClient 
     : supabaseBrowser;
+    
   const userId = session?.user?.id;
+
+  // Debug logging for production
+  console.log("Chat client debug:", {
+    hasSession: !!session,
+    hasAccessToken: !!session?.user?.accessToken,
+    hasAuthClient: !!supabaseAuthClient,
+    usingAuthClient: client === supabaseAuthClient,
+    userId
+  });
 
   // --- ENCRYPTION UTILS FOR PRIVATE KEY BACKUP ---
   async function getStableEncryptionKey() {
@@ -282,15 +295,24 @@ export const useChatData = (session) => {
 
     const initPromise = (async () => {
       try {
-        const [profileResult, localPrivateKey] = await Promise.all([
-          client
+        // Try with current client first
+        let profileResult = await client
+          .from("profiles")
+          .select("public_key_jwk")
+          .eq("id", userId)
+          .single();
+
+        // If we get an auth error, try with browser client as fallback
+        if (profileResult.error && profileResult.error.code === 'PGRST301' && client !== supabaseBrowser) {
+          console.log("Auth error in ensureIdentityKeys, trying with browser client...");
+          profileResult = await supabaseBrowser
             .from("profiles")
             .select("public_key_jwk")
             .eq("id", userId)
-            .single(),
-          localDB.privateKeys.get(userId),
-        ]);
+            .single();
+        }
 
+        const localPrivateKey = await localDB.privateKeys.get(userId);
         const { data: profile } = profileResult;
 
         if (profile?.public_key_jwk && localPrivateKey?.privateJwk) {
@@ -459,7 +481,8 @@ export const useChatData = (session) => {
       try {
         await ensureIdentityKeys();
 
-        const { data: existingList, error: fetchError } = await client
+        // Try with the current client first
+        let { data: existingList, error: fetchError } = await client
           .from("conversations")
           .select("*")
           .or(
@@ -467,10 +490,25 @@ export const useChatData = (session) => {
           )
           .limit(1);
 
+        // If we get an auth error, try with browser client as fallback
+        if (fetchError && fetchError.code === 'PGRST301' && client !== supabaseBrowser) {
+          console.log("Auth error detected, trying with browser client...");
+          const fallbackResult = await supabaseBrowser
+            .from("conversations")
+            .select("*")
+            .or(
+              `and(participant_1.eq.${userId},participant_2.eq.${otherUserId}),and(participant_1.eq.${otherUserId},participant_2.eq.${userId})`
+            )
+            .limit(1);
+          existingList = fallbackResult.data;
+          fetchError = fallbackResult.error;
+        }
+
         if (fetchError) throw fetchError;
         if (existingList?.length) return existingList[0];
 
-        const { data: created, error: createError } = await client
+        // Try to create conversation with current client
+        let { data: created, error: createError } = await client
           .from("conversations")
           .insert({
             participant_1: userId,
@@ -481,6 +519,24 @@ export const useChatData = (session) => {
           })
           .select("*")
           .single();
+
+        // If we get an auth error, try with browser client as fallback
+        if (createError && createError.code === 'PGRST301' && client !== supabaseBrowser) {
+          console.log("Auth error on create, trying with browser client...");
+          const fallbackResult = await supabaseBrowser
+            .from("conversations")
+            .insert({
+              participant_1: userId,
+              participant_2: otherUserId,
+              report_id: reportId || null,
+              last_message_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+            })
+            .select("*")
+            .single();
+          created = fallbackResult.data;
+          createError = fallbackResult.error;
+        }
 
         if (createError) throw createError;
         return created;
@@ -498,7 +554,7 @@ export const useChatData = (session) => {
         return null;
       }
     },
-    [userId, client, ensureIdentityKeys]
+    [userId, client, ensureIdentityKeys, supabaseBrowser]
   );
 
   // Reset conversation keys
