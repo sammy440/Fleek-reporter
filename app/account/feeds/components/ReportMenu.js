@@ -120,7 +120,15 @@ const ReportMenu = ({
       setShow(false);
     } catch (err) {
       console.error("Error starting conversation:", err);
-      alert("Unable to start conversation at this time.");
+      console.error("Error details:", {
+        message: err.message,
+        stack: err.stack,
+        name: err.name,
+        userId: session?.user?.id,
+        reportUserId: report.user_id,
+        reportId: report.id
+      });
+      alert(`Unable to start conversation at this time. Error: ${err.message}`);
     }
   };
 

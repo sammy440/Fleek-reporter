@@ -311,8 +311,14 @@ export const useChatData = (session) => {
         return updated?.privateJwk || null;
       } catch (error) {
         console.error("Error ensuring identity keys:", error);
+        console.error("Error details:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+          userId
+        });
         setError(
-          "Failed to setup encryption keys. Please try logging out and back in."
+          `Failed to setup encryption keys: ${error.message}. Please try logging out and back in.`
         );
         return null;
       } finally {
@@ -480,7 +486,15 @@ export const useChatData = (session) => {
         return created;
       } catch (err) {
         console.error("Error in getOrCreateConversation:", err);
-        setError("Failed to create conversation");
+        console.error("Error details:", {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+          userId,
+          otherUserId,
+          reportId
+        });
+        setError(`Failed to create conversation: ${err.message}`);
         return null;
       }
     },

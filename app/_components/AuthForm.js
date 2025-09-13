@@ -69,7 +69,8 @@ export default function AuthForm({ isSignUp, onSwitchMode, onClose }) {
               setSuccess("Successfully signed in! Redirecting...");
               setTimeout(() => {
                 onClose();
-                router.push("/account");
+                // Use replace instead of push to prevent back navigation issues
+                router.replace("/account");
                 router.refresh();
               }, 1000);
             } else {
@@ -102,7 +103,8 @@ export default function AuthForm({ isSignUp, onSwitchMode, onClose }) {
           setSuccess("Signed in successfully! Redirecting...");
           setTimeout(() => {
             onClose();
-            router.push("/account");
+            // Use replace instead of push to prevent back navigation issues
+            router.replace("/account");
             router.refresh();
           }, 1000);
         } else {

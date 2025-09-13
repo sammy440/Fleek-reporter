@@ -81,9 +81,23 @@ export default function Navigation() {
                 className:
                   "w-[300px] rounded-full border border-gray-200 bg-white/90 backdrop-blur-sm py-2 pr-9 pl-9 text-sm text-gray-900 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent",
               }}
-              onSearch={(q) =>
-                router.push(`/account/feeds?q=${encodeURIComponent(q)}`)
-              }
+              onSearch={(q) => {
+                // Only navigate if there's actually a search query
+                if (!q || q.trim() === '') {
+                  return;
+                }
+                
+                // Only navigate to feeds if we're not already on a feeds page
+                const currentPath = window.location.pathname;
+                if (!currentPath.includes('/feeds')) {
+                  router.push(`/account/feeds?q=${encodeURIComponent(q)}`);
+                } else {
+                  // If already on feeds page, just update the URL without navigation
+                  const url = new URL(window.location);
+                  url.searchParams.set('q', q);
+                  window.history.replaceState({}, '', url);
+                }
+              }}
             />
           ) : (
             <>
@@ -233,6 +247,26 @@ export default function Navigation() {
                         inputProps={{
                           className:
                             "w-full rounded-full border border-gray-200 dark:border-gray-800 bg-white/90 dark:bg-gray-800 backdrop-blur-sm py-2 pr-9 pl-9 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-700 focus:border-transparent",
+                        }}
+                        onSearch={(q) => {
+                          // Only navigate if there's actually a search query
+                          if (!q || q.trim() === '') {
+                            closeMobileMenu();
+                            return;
+                          }
+                          
+                          // Only navigate to feeds if we're not already on a feeds page
+                          const currentPath = window.location.pathname;
+                          if (!currentPath.includes('/feeds')) {
+                            router.push(`/account/feeds?q=${encodeURIComponent(q)}`);
+                          } else {
+                            // If already on feeds page, just update the URL without navigation
+                            const url = new URL(window.location);
+                            url.searchParams.set('q', q);
+                            window.history.replaceState({}, '', url);
+                          }
+                          // Close mobile menu after search
+                          closeMobileMenu();
                         }}
                       />
                     </div>

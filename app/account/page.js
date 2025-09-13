@@ -37,6 +37,10 @@ export default function AccountPage() {
     const path = window.location.pathname;
     if (path === "/account") {
       setActiveSection("account");
+      // Ensure we stay on the account page after sign-in
+      if (window.location.pathname !== "/account") {
+        router.replace("/account");
+      }
     } else if (path.includes("/feeds")) {
       setActiveSection("feeds");
     } else if (path.includes("/reports")) {

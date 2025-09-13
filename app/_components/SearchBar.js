@@ -21,7 +21,10 @@ export default function SearchBar({
     if (!onSearch) return;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      onSearch(query);
+      // Only call onSearch if there's actually a query
+      if (query && query.trim() !== '') {
+        onSearch(query);
+      }
     }, debounceMs);
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);

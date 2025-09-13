@@ -233,11 +233,22 @@ export const authConfig = {
       try {
         // Handle various redirect scenarios
         if (url.startsWith("/")) {
+          // Only allow redirect to /account, not to /account/feeds or other subpages
+          if (url.startsWith("/account/")) {
+            console.log("Redirecting subpage to main account:", `${baseUrl}/account`);
+            return `${baseUrl}/account`;
+          }
           console.log("Redirecting to relative path:", `${baseUrl}${url}`);
           return `${baseUrl}${url}`;
         }
 
         if (new URL(url).origin === baseUrl) {
+          // Check if the URL is trying to go to a subpage of account
+          const urlObj = new URL(url);
+          if (urlObj.pathname.startsWith("/account/")) {
+            console.log("Redirecting subpage to main account:", `${baseUrl}/account`);
+            return `${baseUrl}/account`;
+          }
           console.log("Redirecting to same origin:", url);
           return url;
         }

@@ -64,7 +64,7 @@ const HomePage = ({
   };
 
   if (status === "authenticated") {
-    router.push("/account");
+    router.replace("/account");
     return null;
   }
 
