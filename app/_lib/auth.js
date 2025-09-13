@@ -194,13 +194,16 @@ export const authConfig = {
               email: token.email,
               role: "authenticated",
               aud: "authenticated",
+              iat: Math.floor(Date.now() / 1000),
+              exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
             },
             process.env.SUPABASE_JWT_SECRET,
             {
               algorithm: "HS256",
-              expiresIn: "1h",
             }
           );
+        } else {
+          console.warn("SUPABASE_JWT_SECRET not found in environment variables");
         }
 
         return token;

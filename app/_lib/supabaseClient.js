@@ -60,7 +60,26 @@ export function useSupabaseClientWithAuth() {
   const accessToken = session?.user?.accessToken || null;
 
   const supabase = useMemo(
-    () => getAuthClientForToken(accessToken),
+    () => {
+      if (accessToken) {
+        // Create a client with the custom JWT token
+        return createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          {
+            auth: {
+              storageKey: `sb-nextauth-${accessToken.substring(0, 16)}`,
+              persistSession: false,
+              autoRefreshToken: false,
+            },
+            global: {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            },
+          }
+        );
+      }
+      return supabaseBrowser;
+    },
     [accessToken]
   );
 

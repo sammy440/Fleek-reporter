@@ -139,13 +139,17 @@ CREATE POLICY "Users can update their own profile" ON profiles
 CREATE POLICY "Users can view conversations they participate in" ON conversations
   FOR SELECT USING (
     auth.uid()::text = participant_1::text OR 
-    auth.uid()::text = participant_2::text
+    auth.uid()::text = participant_2::text OR
+    auth.jwt() ->> 'sub' = participant_1::text OR
+    auth.jwt() ->> 'sub' = participant_2::text
   );
 
 CREATE POLICY "Users can insert conversations they participate in" ON conversations
   FOR INSERT WITH CHECK (
     auth.uid()::text = participant_1::text OR 
-    auth.uid()::text = participant_2::text
+    auth.uid()::text = participant_2::text OR
+    auth.jwt() ->> 'sub' = participant_1::text OR
+    auth.jwt() ->> 'sub' = participant_2::text
   );
 
 -- RLS Policies for messages
@@ -154,17 +158,27 @@ CREATE POLICY "Users can view messages in conversations they participate in" ON 
     EXISTS (
       SELECT 1 FROM conversations 
       WHERE id = messages.conversation_id 
-      AND (participant_1::text = auth.uid()::text OR participant_2::text = auth.uid()::text)
+      AND (
+        participant_1::text = auth.uid()::text OR 
+        participant_2::text = auth.uid()::text OR
+        participant_1::text = auth.jwt() ->> 'sub' OR
+        participant_2::text = auth.jwt() ->> 'sub'
+      )
     )
   );
 
 CREATE POLICY "Users can insert messages in conversations they participate in" ON messages
   FOR INSERT WITH CHECK (
-    sender_id::text = auth.uid()::text AND
+    (sender_id::text = auth.uid()::text OR sender_id::text = auth.jwt() ->> 'sub') AND
     EXISTS (
       SELECT 1 FROM conversations 
       WHERE id = messages.conversation_id 
-      AND (participant_1::text = auth.uid()::text OR participant_2::text = auth.uid()::text)
+      AND (
+        participant_1::text = auth.uid()::text OR 
+        participant_2::text = auth.uid()::text OR
+        participant_1::text = auth.jwt() ->> 'sub' OR
+        participant_2::text = auth.jwt() ->> 'sub'
+      )
     )
   );
 

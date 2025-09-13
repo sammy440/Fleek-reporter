@@ -490,8 +490,8 @@ export const useChatData = (session) => {
           )
           .limit(1);
 
-        // If we get an auth error, try with browser client as fallback
-        if (fetchError && fetchError.code === 'PGRST301' && client !== supabaseBrowser) {
+        // If we get an auth error or RLS policy violation, try with browser client as fallback
+        if (fetchError && (fetchError.code === 'PGRST301' || fetchError.code === '42501') && client !== supabaseBrowser) {
           console.log("Auth error detected, trying with browser client...");
           const fallbackResult = await supabaseBrowser
             .from("conversations")
@@ -520,8 +520,8 @@ export const useChatData = (session) => {
           .select("*")
           .single();
 
-        // If we get an auth error, try with browser client as fallback
-        if (createError && createError.code === 'PGRST301' && client !== supabaseBrowser) {
+        // If we get an auth error or RLS policy violation, try with browser client as fallback
+        if (createError && (createError.code === 'PGRST301' || createError.code === '42501') && client !== supabaseBrowser) {
           console.log("Auth error on create, trying with browser client...");
           const fallbackResult = await supabaseBrowser
             .from("conversations")
