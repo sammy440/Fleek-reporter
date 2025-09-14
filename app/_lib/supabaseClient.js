@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { useSession } from "next-auth/react";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 export const supabaseBrowser = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -29,44 +29,56 @@ export const supabaseServer = () => {
   );
 };
 
-// Cache auth clients by access token so multiple components reuse the same instance
-const authClientsByToken = new Map();
-
-function getAuthClientForToken(accessToken) {
-  const key = accessToken || "anonymous";
-  if (authClientsByToken.has(key)) return authClientsByToken.get(key);
-
-  const client = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      auth: {
-        storageKey: `sb-nextauth-${key.substring(0, 16)}`,
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-      global: {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      },
-    }
-  );
-
-  authClientsByToken.set(key, client);
-  return client;
-}
-
 export function useSupabaseClientWithAuth() {
   const { data: session, status } = useSession();
-  const userId = session?.user?.id;
+  
+  const supabase = useMemo(() => {
+    // Create a new client instance for authenticated requests
+    const client = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        auth: {
+          storageKey: session?.user?.id ? `sb-nextauth-${session.user.id}` : "sb-anonymous",
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      }
+    );
 
-  const supabase = useMemo(
-    () => {
-      // Always use the browser client for now to avoid JWT issues
-      // We'll handle authentication through RLS policies
-      return supabaseBrowser;
-    },
-    [userId]
-  );
+    return client;
+  }, [session?.user?.id]);
+
+  // Set up authentication when session is available
+  useEffect(() => {
+    if (session?.user && status === "authenticated") {
+      // Create a fake Supabase session using NextAuth data
+      const supabaseSession = {
+        access_token: session.accessToken || `fake-jwt-${session.user.id}`,
+        refresh_token: session.refreshToken || "fake-refresh",
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        token_type: "bearer",
+        user: {
+          id: session.user.id,
+          email: session.user.email,
+          user_metadata: {
+            name: session.user.name,
+            avatar_url: session.user.image,
+          },
+          app_metadata: {},
+          aud: "authenticated",
+          role: "authenticated",
+        },
+      };
+
+      // Set the session in Supabase client
+      supabase.auth.setSession(supabaseSession);
+    } else if (status === "unauthenticated") {
+      // Clear session if user is not authenticated
+      supabase.auth.signOut();
+    }
+  }, [session, status, supabase]);
 
   return { supabase, session, status };
 }
