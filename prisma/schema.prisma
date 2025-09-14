@@ -1,27 +1,28 @@
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
- directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// NextAuth.js required models
 model User {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  hashedPassword String?
- 
-  // Relations
-  accounts Account[]
-  sessions Session[]
-  
+  id                                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                String?
+  email                               String?           @unique
+  emailVerified                       DateTime?
+  image                               String?
+  hashedPassword                      String?
+  accounts                            Account[]
+  follows_follows_follower_idTousers  follows[]         @relation("follows_follower_idTousers")
+  follows_follows_following_idTousers follows[]         @relation("follows_following_idTousers")
+  profiles                            profiles?
+  report_comments                     report_comments[]
+  report_likes                        report_likes[]
+  sessions                            Session[]
+
   @@map("users")
 }
 
@@ -31,16 +32,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -51,9 +50,7 @@ model Session {
   sessionToken String   @unique
   userId       String   @db.Uuid
   expires      DateTime
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
@@ -65,4 +62,143 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model conversations {
+  id                                             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  report_id                                      String?    @db.Uuid
+  participant_1                                  String?    @db.Uuid
+  participant_2                                  String?    @db.Uuid
+  created_at                                     DateTime   @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  updated_at                                     DateTime   @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  last_message_at                                DateTime   @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  salt_base64                                    String?
+  profiles_conversations_participant_1Toprofiles profiles?  @relation("conversations_participant_1Toprofiles", fields: [participant_1], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles_conversations_participant_2Toprofiles profiles?  @relation("conversations_participant_2Toprofiles", fields: [participant_2], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  reports                                        reports?   @relation(fields: [report_id], references: [id], onUpdate: NoAction)
+  messages                                       messages[]
+
+  @@index([last_message_at(sort: Desc)], map: "idx_conversations_last_message_at")
+  @@index([participant_1, participant_2], map: "idx_conversations_participants")
+  @@index([updated_at], map: "idx_conversations_updated_at")
+}
+
+model follows {
+  id                                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  follower_id                       String    @db.Uuid
+  following_id                      String    @db.Uuid
+  created_at                        DateTime? @default(now()) @db.Timestamptz(6)
+  users_follows_follower_idTousers  User      @relation("follows_follower_idTousers", fields: [follower_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_follows_following_idTousers User      @relation("follows_following_idTousers", fields: [following_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([follower_id, following_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model messages {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id   String        @db.Uuid
+  sender_id         String        @db.Uuid
+  content_plaintext String?
+  message_type      String?       @default("text") @db.VarChar(20)
+  media_url         String?
+  read_by_recipient Boolean?      @default(false)
+  created_at        DateTime      @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  updated_at        DateTime      @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  iv_base64         String?
+  ciphertext_base64 String?
+  file_type         String?
+  file_url          String?
+  conversations     conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles          profiles      @relation(fields: [sender_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([conversation_id, created_at], map: "idx_messages_conversation_created")
+  @@index([conversation_id, created_at], map: "idx_messages_conversation_id")
+  @@index([sender_id], map: "idx_messages_sender")
+  @@index([sender_id], map: "idx_messages_sender_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model profiles {
+  id                                                  String          @id @db.Uuid
+  name                                                String?
+  email                                               String?         @unique
+  avatar_url                                          String?
+  bio                                                 String?
+  location                                            String?
+  website                                             String?
+  phone                                               String?
+  created_at                                          DateTime?       @db.Timestamptz(6)
+  updated_at                                          DateTime?       @db.Timestamptz(6)
+  public_key_jwk                                      Json?
+  encrypted_private_key                               Json?
+  conversations_conversations_participant_1Toprofiles conversations[] @relation("conversations_participant_1Toprofiles")
+  conversations_conversations_participant_2Toprofiles conversations[] @relation("conversations_participant_2Toprofiles")
+  messages                                            messages[]
+  users                                               User            @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  reports                                             reports[]
+
+  @@index([id], map: "idx_profiles_id")
+  @@index([public_key_jwk], map: "idx_profiles_public_key_jwk", type: Gin)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model report_comments {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  report_id  String    @db.Uuid
+  user_id    String    @db.Uuid
+  content    String
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  reports    reports   @relation(fields: [report_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([report_id], map: "idx_report_comments_report_id")
+  @@index([user_id], map: "idx_report_comments_user")
+  @@index([user_id], map: "idx_report_comments_user_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model report_likes {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  report_id  String    @db.Uuid
+  user_id    String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  reports    reports   @relation(fields: [report_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([report_id, user_id])
+  @@index([report_id], map: "idx_report_likes_report_id")
+  @@index([user_id], map: "idx_report_likes_user")
+  @@index([user_id], map: "idx_report_likes_user_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reports {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String?           @db.Uuid
+  title           String
+  category        String
+  description     String?
+  latitude        Decimal?          @db.Decimal(9, 6)
+  longitude       Decimal?          @db.Decimal(9, 6)
+  location_name   String?
+  status          String?           @default("unconfirmed")
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  media_urls      String[]
+  media_type      String?
+  content         String?
+  location        String?
+  views           Int?              @default(0)
+  updated_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  conversations   conversations[]
+  report_comments report_comments[]
+  report_likes    report_likes[]
+  profiles        profiles?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([category], map: "idx_reports_category")
+  @@index([created_at(sort: Desc)], map: "idx_reports_created_at")
+  @@index([user_id], map: "idx_reports_user")
 }

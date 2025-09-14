@@ -57,30 +57,15 @@ function getAuthClientForToken(accessToken) {
 
 export function useSupabaseClientWithAuth() {
   const { data: session, status } = useSession();
-  const accessToken = session?.user?.accessToken || null;
+  const userId = session?.user?.id;
 
   const supabase = useMemo(
     () => {
-      if (accessToken) {
-        // Create a client with the custom JWT token
-        return createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-          {
-            auth: {
-              storageKey: `sb-nextauth-${accessToken.substring(0, 16)}`,
-              persistSession: false,
-              autoRefreshToken: false,
-            },
-            global: {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            },
-          }
-        );
-      }
+      // Always use the browser client for now to avoid JWT issues
+      // We'll handle authentication through RLS policies
       return supabaseBrowser;
     },
-    [accessToken]
+    [userId]
   );
 
   return { supabase, session, status };
