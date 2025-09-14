@@ -338,15 +338,16 @@ export default function MediaUploader({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 bg-opacity-10 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-2 sm:p-4"
         >
-          <div className="relative w-full max-w-4xl bg-black rounded-lg overflow-hidden">
+          {/* Mobile: Full height minus safe areas, Desktop: Constrained */}
+          <div className="relative w-full h-full sm:h-auto sm:max-w-4xl bg-black rounded-none sm:rounded-lg overflow-hidden flex flex-col">
             {/* Camera Header */}
-            <div className="absolute top-0 left-0 right-0 z-10 bg-black bg-opacity-50 p-4 flex justify-between items-center">
+            <div className="relative z-10 bg-black bg-opacity-70 p-3 sm:p-4 flex justify-between items-center shrink-0">
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCameraMode("photo")}
-                  className={`px-3 py-1 rounded-md text-sm font-medium ${
+                  className={`px-2 py-1 sm:px-3 sm:py-1 rounded-md text-xs sm:text-sm font-medium ${
                     cameraMode === "photo"
                       ? "bg-blue-600 text-white"
                       : "bg-gray-600 text-gray-200"
@@ -356,7 +357,7 @@ export default function MediaUploader({
                 </button>
                 <button
                   onClick={() => setCameraMode("video")}
-                  className={`px-3 py-1 rounded-md text-sm font-medium ${
+                  className={`px-2 py-1 sm:px-3 sm:py-1 rounded-md text-xs sm:text-sm font-medium ${
                     cameraMode === "video"
                       ? "bg-blue-600 text-white"
                       : "bg-gray-600 text-gray-200"
@@ -373,7 +374,7 @@ export default function MediaUploader({
                   title="Switch Camera"
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -393,7 +394,7 @@ export default function MediaUploader({
                   title="Close Camera"
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -409,8 +410,8 @@ export default function MediaUploader({
               </div>
             </div>
 
-            {/* Camera View */}
-            <div className="relative aspect-video bg-gray-900">
+            {/* Camera View - Takes remaining space */}
+            <div className="relative flex-1 bg-gray-900 min-h-0">
               <video
                 ref={videoRef}
                 className="w-full h-full object-cover"
@@ -441,30 +442,38 @@ export default function MediaUploader({
               />
               <canvas ref={canvasRef} className="hidden" />
 
-              {/* Video debug info */}
-              <div className="absolute top-16 left-4 bg-black bg-opacity-50 text-white text-xs p-2 rounded">
+              {/* Video debug info - Hidden on mobile for cleaner UI */}
+              <div className="hidden sm:block absolute top-4 left-4 bg-black bg-opacity-50 text-white text-xs p-2 rounded">
                 <p>Stream: {streamRef.current ? "Active" : "None"}</p>
                 <p>Video Ready: {videoRef.current?.readyState || 0}</p>
                 <p>Playing: {videoRef.current?.playing ? "Yes" : "No"}</p>
               </div>
+
+              {/* Recording Indicator */}
+              {isRecording && (
+                <div className="absolute top-4 left-4 sm:left-auto sm:right-4 flex items-center space-x-2 bg-red-600 text-white px-3 py-2 rounded-full">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium">Recording...</span>
+                </div>
+              )}
             </div>
 
-            {/* Camera Controls */}
-            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-6 flex justify-center items-center space-x-6">
+            {/* Camera Controls - Fixed at bottom */}
+            <div className="relative bg-black bg-opacity-70 p-4 sm:p-6 flex justify-center items-center shrink-0">
               {cameraMode === "photo" ? (
                 <button
                   onClick={capturePhoto}
                   disabled={uploadingMedia}
-                  className="w-16 h-16 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50"
                   title="Capture Photo"
                 >
-                  <div className="w-12 h-12 bg-black rounded-full"></div>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black rounded-full"></div>
                 </button>
               ) : (
                 <button
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={uploadingMedia}
-                  className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 ${
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 ${
                     isRecording
                       ? "bg-red-600 hover:bg-red-700"
                       : "bg-white hover:bg-gray-200"
@@ -472,21 +481,13 @@ export default function MediaUploader({
                   title={isRecording ? "Stop Recording" : "Start Recording"}
                 >
                   {isRecording ? (
-                    <div className="w-6 h-6 bg-white rounded-sm"></div>
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-sm"></div>
                   ) : (
-                    <div className="w-6 h-6 bg-red-600 rounded-full"></div>
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-600 rounded-full"></div>
                   )}
                 </button>
               )}
             </div>
-
-            {/* Recording Indicator */}
-            {isRecording && (
-              <div className="absolute top-20 left-4 flex items-center space-x-2 bg-red-600 text-white px-3 py-1 rounded-full">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">Recording...</span>
-              </div>
-            )}
           </div>
         </motion.div>
       )}
