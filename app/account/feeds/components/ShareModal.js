@@ -112,7 +112,7 @@ const ShareModal = ({ showModal, setShowModal, report }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        className="fixed inset-0  bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
         onClick={() => setShowModal(false)}
       >
         <motion.div
